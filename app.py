@@ -10,8 +10,6 @@ def scrape_starlink_data(username, password, progress_box):
     with sync_playwright() as p:
         progress_box.info("🤖 Launching visual browser session...")
         
-        # FIX 1: Set headless=False so you can physically see if a Captcha pops up!
-        # Added arguments to disable the "AutomationControlled" flag that websites check for.
         browser = p.chromium.launch(
             headless=False, 
             slow_mo=200,
@@ -21,7 +19,6 @@ def scrape_starlink_data(username, password, progress_box):
             ]
         )
         
-        # FIX 2: Emulate a real Windows 10 Google Chrome browser browser profile
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             viewport={'width': 1280, 'height': 800}
@@ -31,18 +28,10 @@ def scrape_starlink_data(username, password, progress_box):
         try:
             progress_box.info("🌐 Navigating to Starlink Login...")
             page.goto("https://www.starlink.com/account/home")
-            
-            # Allow page to render fully
             page.wait_for_load_state("domcontentloaded")
-            
-            # --- 💡 HELP THE ROBOT IF NEEDED 💡 ---
-            # If a Cloudflare "Verify you are human" checkbox appears on your screen,
-            # you can manually click it with your mouse right now while the script waits!
-            
             progress_box.info("🔑 Waiting for email input field to render...")
-            email_input = page.locator("input[name='email']")
             
-            # Extended timeout to 25 seconds to give you time to bypass any security check manually
+            email_input = page.locator("input[name='email']")
             email_input.wait_for(state="visible", timeout=25000)
             email_input.fill(username)
             
@@ -67,9 +56,8 @@ def scrape_starlink_data(username, password, progress_box):
             progress_box.info("📊 Loading chart elements...")
             page.wait_for_load_state("domcontentloaded")
             
-            # --- SCRAPE DATA (SVG CHART HOVER METHOD - FIXED) ---
+            # --- SCRAPE DATA (SVG CHART HOVER METHOD) ---
             
-            # 1. Wait for the chart bars to render on the screen
             chart_bar_selector = "rect.MuiBarElement-series-y_0"
             page.wait_for_selector(chart_bar_selector, timeout=25000)
             
@@ -84,15 +72,9 @@ def scrape_starlink_data(username, password, progress_box):
             
             for i, bar in enumerate(bars):
                 try:
-                    # Make sure the target bar is visible in the viewport window
                     bar.scroll_into_view_if_needed()
-                    
-                    # --- THE FIX: FORCED PHYSICAL HOVER ---
-                    # force=True tells Playwright to ignore the invisible pointer-interception wall, 
-                    # but still perform a true physical cursor movement so React updates its state!
                     bar.hover(force=True, timeout=3000)
-                    
-                    # Give React a short moment to process the coordinate shift and update the text
+
                     time.sleep(0.4) 
                     
                     tooltip = page.locator(".MuiChartsTooltip-root")
@@ -101,12 +83,10 @@ def scrape_starlink_data(username, password, progress_box):
                         date_val = tooltip.locator("caption").inner_text().strip()
                         usage_val = tooltip.locator("td.MuiChartsTooltip-valueCell").inner_text().strip()
                         
-                        # Safety check: Only append if we aren't accidentally grabbing the exact same state twice
                         if not data or data[-1]["Date"] != date_val:
                             data.append({"Date": date_val, "Data Usage (GB)": usage_val})
                             
                 except Exception as bar_error:
-                    # If an individual bar fails to hover, skip it and keep going so the whole script doesn't crash
                     continue
                     
                 if i % 5 == 0 or i == total_bars - 1:
@@ -133,7 +113,6 @@ if st.button("Start Webscraping 🕸️"):
     if not password:
         st.warning("Please enter the operational password to proceed.")
     else:
-        # Create a dynamic logging block in the Streamlit UI
         progress_box = st.empty()
         
         scraped_data = scrape_starlink_data(username, password, progress_box)
