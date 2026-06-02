@@ -29,15 +29,15 @@ def scrape_starlink_data(email, password, progress_box):
             progress_box.info("🌐 Navigating to Starlink Login...")
             page.goto("https://www.starlink.com/account/home")
             page.wait_for_load_state("domcontentloaded")
-            progress_box.info("🔑 Waiting for email input field to render...")
             
+            progress_box.info("🔑 Waiting for email input field to render...")
             email_input = page.locator("input[name='email']")
-            email_input.wait_for(state="visible", timeout=25000)
+            email_input.wait_for(state="visible", timeout=60000)
             email_input.fill(email)
             
             progress_box.info("🔑 Entering password...")
             password_input = page.locator("input[name='password']")
-            password_input.wait_for(state="visible", timeout=15000)
+            password_input.wait_for(state="visible", timeout=60000)
             password_input.fill(password)
             
             login_button = page.get_by_role("button", name="Sign In") 
@@ -45,7 +45,7 @@ def scrape_starlink_data(email, password, progress_box):
             login_button.click()
             
             progress_box.info("🔄 Waiting for dashboard redirection...")
-            page.wait_for_url("**/account/home", timeout=30000) 
+            page.wait_for_url("**/account/home", timeout=120000) 
             page.wait_for_load_state("domcontentloaded")
             
             progress_box.info("🎯 Locating and clicking 'Your Subscription'...")
@@ -57,7 +57,6 @@ def scrape_starlink_data(email, password, progress_box):
             page.wait_for_load_state("domcontentloaded")
             
             # --- SCRAPE DATA (SVG CHART HOVER METHOD) ---
-            
             chart_bar_selector = "rect.MuiBarElement-series-y_0"
             page.wait_for_selector(chart_bar_selector, timeout=25000)
             
@@ -74,7 +73,6 @@ def scrape_starlink_data(email, password, progress_box):
                 try:
                     bar.scroll_into_view_if_needed()
                     bar.hover(force=True, timeout=3000)
-
                     time.sleep(0.4) 
                     
                     tooltip = page.locator(".MuiChartsTooltip-root")
@@ -87,6 +85,7 @@ def scrape_starlink_data(email, password, progress_box):
                             data.append({"Date": date_val, "Data Usage (GB)": usage_val})
                             
                 except Exception as bar_error:
+                    progress_box.warning(f"⚠️ Error occurred while processing bar {i+1}: {bar_error}")
                     continue
                     
                 if i % 5 == 0 or i == total_bars - 1:
@@ -103,18 +102,17 @@ def scrape_starlink_data(email, password, progress_box):
 # --- 2. THE WEB UI (FRONTEND) ---
 st.set_page_config(page_title="Starlink Data Scraper", page_icon="📡")
 
-st.title("📡 Starlink Daily Data Extraper")
+st.title("📡 Starlink Daily Data Extractor")
 st.markdown("Enter credentials below to safely extract and build your daily usage telemetry report. 📊")
 
-email = st.text_input("Email", type="email")
+email = st.text_input("Email")
 password = st.text_input("Password", type="password") 
 
 if st.button("Start Webscraping 🕸️"):
-    if not password:
-        st.warning("Please enter the operational password to proceed.")
+    if not email or not password:
+        st.warning("Please complete both the email and password fields to proceed.")
     else:
         progress_box = st.empty()
-        
         scraped_data = scrape_starlink_data(email, password, progress_box)
         
         if scraped_data:
