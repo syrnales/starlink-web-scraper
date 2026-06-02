@@ -30,7 +30,7 @@ Initialize Playwright's core system drivers to download the headless Chromium br
 1. **Launch the Web Server**
    Run the following execution command in your terminal to initialize the Streamlit instance:
    ``` bash
-   streamlit run app.py
+   py -m streamlit run app.py
 
 2. **Execute the Extraction:**
 
