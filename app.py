@@ -4,7 +4,7 @@ import pandas as pd
 import time
 
 # --- 1. THE SCRAPING FUNCTION ---
-def scrape_starlink_data(username, password, progress_box):
+def scrape_starlink_data(email, password, progress_box):
     data = []
     
     with sync_playwright() as p:
@@ -33,7 +33,7 @@ def scrape_starlink_data(username, password, progress_box):
             
             email_input = page.locator("input[name='email']")
             email_input.wait_for(state="visible", timeout=25000)
-            email_input.fill(username)
+            email_input.fill(email)
             
             progress_box.info("🔑 Entering password...")
             password_input = page.locator("input[name='password']")
@@ -106,7 +106,7 @@ st.set_page_config(page_title="Starlink Data Scraper", page_icon="📡")
 st.title("📡 Starlink Daily Data Extraper")
 st.markdown("Enter credentials below to safely extract and build your daily usage telemetry report. 📊")
 
-username = st.text_input("Username", value="fundamentalssystem@gmail.com")
+email = st.text_input("Email", type="email")
 password = st.text_input("Password", type="password") 
 
 if st.button("Start Webscraping 🕸️"):
@@ -115,7 +115,7 @@ if st.button("Start Webscraping 🕸️"):
     else:
         progress_box = st.empty()
         
-        scraped_data = scrape_starlink_data(username, password, progress_box)
+        scraped_data = scrape_starlink_data(email, password, progress_box)
         
         if scraped_data:
             progress_box.success("Data compiled successfully! 🎉")
