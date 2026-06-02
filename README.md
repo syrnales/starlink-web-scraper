@@ -13,7 +13,7 @@ Follow these steps sequentially to configure your local development environment 
 
 1. **Clone the Repository:**
    ```bash
-   git clone [https://github.com/syrnales/starlink-web-scraper.git](https://github.com/syrnales/starlink-web-scraper.git)
+   git clone https://github.com/syrnales/starlink-web-scraper.git
    cd starlink-web-scraper
 
 2. **Install Dependencies:**
