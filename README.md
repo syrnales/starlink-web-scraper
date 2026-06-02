@@ -23,7 +23,7 @@ Follow these steps sequentially to configure your local development environment 
 3. **Install Browser Binaries:**
 Initialize Playwright's core system drivers to download the headless Chromium browser infrastructure:
     ```bash
-     playwright install
+     py -m playwright install
 
 ## How to Use the Script
 
